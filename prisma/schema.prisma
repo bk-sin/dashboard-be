@@ -29,7 +29,7 @@ model User {
   firstName        String
   lastName         String
   email            String    @unique
-  phone            String
+  phone            String?
   password         String
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -38,8 +38,8 @@ model User {
   isVerified       Boolean   @default(false)
   isBlocked        Boolean   @default(false)
   lastLogin        DateTime?
-  profilePictureId Int
-  profilePicture   Image?    @relation(fields: [profilePictureId], references: [id])
+  //profilePictureId Int?
+  //profilePicture   Image?    @relation(fields: [profilePictureId], references: [id])
   addresses        Address[]
   Review           Review[]
   Order            Order[]
@@ -105,7 +105,7 @@ model Image {
   isPrimary Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  User      User[]
+  //User      User[]
 }
 
 model Tag {
