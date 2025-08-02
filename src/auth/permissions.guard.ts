@@ -8,7 +8,11 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { REQUIRE_PERMISSIONS_KEY } from './decorators/require-permissions.decorator';
 import { JwtPayload } from './auth.service';
-import { UsersService, UserResponse } from '../users/users.service';
+import { UsersService } from '../users/users.service';
+import {
+  extractUserPermissions,
+  isSuperAdmin,
+} from './utils/permissions.utils';
 
 interface AuthenticatedRequest extends Request {
   user: JwtPayload;
@@ -44,15 +48,15 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    if (await this.isSuperAdminByRole(user)) {
-      this.logger.debug(
-        `User ${user.email} has superadmin role, granting full access`,
-      );
-      return true;
-    }
-
     try {
       const fullUserData = await this.usersService.findOne(user.id);
+
+      if (fullUserData?.role?.slug && isSuperAdmin(fullUserData)) {
+        this.logger.debug(
+          `User ${user.email} has superadmin permissions, granting full access`,
+        );
+        return true;
+      }
 
       if (!fullUserData) {
         this.logger.warn(`User with ID ${user.id} not found in database`);
@@ -63,15 +67,7 @@ export class PermissionsGuard implements CanActivate {
         this.logger.warn(`User ${user.email} is not active`);
         return false;
       }
-
-      if (this.isSuperAdminByPermissions(fullUserData)) {
-        this.logger.debug(
-          `User ${user.email} has superadmin permissions, granting full access`,
-        );
-        return true;
-      }
-
-      const userPermissions = this.extractUserPermissions(fullUserData);
+      const userPermissions = extractUserPermissions(fullUserData);
 
       this.logger.debug(
         `Required permissions: ${requiredPermissions.join(', ')}`,
@@ -96,52 +92,5 @@ export class PermissionsGuard implements CanActivate {
       );
       return false;
     }
-  }
-
-  private async isSuperAdminByRole(user: JwtPayload): Promise<boolean> {
-    const fullUserData = await this.usersService.findOne(user.id);
-    if (fullUserData?.role?.slug) {
-      return fullUserData?.role.slug === 'superadmin';
-    }
-    return false;
-  }
-
-  private isSuperAdminByPermissions(fullUserData: UserResponse): boolean {
-    const userPermissions = this.extractUserPermissions(fullUserData);
-    const superAdminPermissions = ['super.admin', 'admin.all', 'superadmin'];
-
-    return superAdminPermissions.some((permission) =>
-      userPermissions.includes(permission),
-    );
-  }
-
-  private extractUserPermissions(fullUserData: UserResponse): string[] {
-    const permissions: string[] = [];
-
-    if (fullUserData.role?.rolePermissions) {
-      fullUserData.role.rolePermissions.forEach((rolePermission) => {
-        if (
-          rolePermission.isActive &&
-          rolePermission.permission &&
-          typeof rolePermission.permission.name === 'string'
-        ) {
-          permissions.push(rolePermission.permission.name);
-        }
-      });
-    }
-
-    if (fullUserData.userPermissions) {
-      fullUserData.userPermissions.forEach((userPermission) => {
-        if (
-          userPermission.isActive &&
-          userPermission.permission &&
-          typeof userPermission.permission.name === 'string'
-        ) {
-          permissions.push(userPermission.permission.name);
-        }
-      });
-    }
-
-    return [...new Set(permissions)];
   }
 }

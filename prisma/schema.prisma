@@ -43,36 +43,21 @@ model Permission {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   rolePermissions RolePermission[]
-  userPermissions UserPermission[]
 }
 
 model User {
-  id              Int              @id @default(autoincrement())
-  firstName       String
-  lastName        String
-  email           String           @unique
-  phone           String?
-  password        String
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  isActive        Boolean          @default(true)
-  isVerified      Boolean          @default(false)
-  isBlocked       Boolean          @default(false)
-  lastLogin       DateTime?
-  roleId          Int              @default(1)
-  role            Role             @relation(fields: [roleId], references: [id])
-  userPermissions UserPermission[]
-}
-
-model UserPermission {
-  id           Int        @id @default(autoincrement())
-  userId       Int
-  permissionId Int
-  grantedAt    DateTime   @default(now())
-  grantedBy    Int?
-  isActive     Boolean    @default(true)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, permissionId])
+  id         Int      @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String?
+  password   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isActive   Boolean  @default(true)
+  isVerified Boolean  @default(false)
+  isBlocked  Boolean  @default(false)
+  lastLogin  DateTime?
+  roleId     Int      @default(1)
+  role       Role     @relation(fields: [roleId], references: [id])
 }

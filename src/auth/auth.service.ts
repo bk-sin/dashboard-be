@@ -42,7 +42,7 @@ export class AuthService {
     }
 
     const permissions = user.role.permissions as Record<string, boolean>;
-    if (!permissions['dashboard.access']) {
+    if (!permissions['dashboard.access'] && user.role.slug !== 'superadmin') {
       throw new UnauthorizedException(
         'Access denied: Dashboard permissions required',
       );

@@ -4,120 +4,13 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Starting seed process...');
+  console.log('🌱 Starting seed process...');
 
-  console.log('Creating roles...');
-
-  const customerRole = await prisma.role.upsert({
-    where: { slug: 'customer' },
-    update: {},
-    create: {
-      name: 'Customer',
-      slug: 'customer',
-      permissions: {
-        'dashboard.access': false,
-        'profile.read': true,
-        'profile.update': true,
-      },
-    },
-  });
-
-  const employeeRole = await prisma.role.upsert({
-    where: { slug: 'employee' },
-    update: {},
-    create: {
-      name: 'Employee',
-      slug: 'employee',
-      permissions: {
-        'dashboard.access': true,
-        'users.read': true,
-        'profile.read': true,
-        'profile.update': true,
-      },
-    },
-  });
-
-  const managerRole = await prisma.role.upsert({
-    where: { slug: 'manager' },
-    update: {},
-    create: {
-      name: 'Manager',
-      slug: 'manager',
-      permissions: {
-        'dashboard.access': true,
-        'users.read': true,
-        'users.create': true,
-        'users.update': true,
-        'roles.read': true,
-        'endpoints.read': true,
-        'profile.read': true,
-        'profile.update': true,
-      },
-    },
-  });
-
-  const adminRole = await prisma.role.upsert({
-    where: { slug: 'admin' },
-    update: {},
-    create: {
-      name: 'Admin',
-      slug: 'admin',
-      permissions: {
-        'dashboard.access': true,
-        'users.read': true,
-        'users.create': true,
-        'users.update': true,
-        'users.delete': true,
-        'roles.read': true,
-        'roles.create': true,
-        'roles.update': true,
-        'roles.delete': true,
-        'endpoints.read': true,
-        'endpoints.update': true,
-        'permissions.manage': true,
-        'profile.read': true,
-        'profile.update': true,
-      },
-    },
-  });
-
-  const superadminRole = await prisma.role.upsert({
-    where: { slug: 'superadmin' },
-    update: {},
-    create: {
-      name: 'Super Admin',
-      slug: 'superadmin',
-      permissions: {
-        'dashboard.access': true,
-        'users.read': true,
-        'users.create': true,
-        'users.update': true,
-        'users.delete': true,
-        'roles.read': true,
-        'roles.create': true,
-        'roles.update': true,
-        'roles.delete': true,
-        'endpoints.read': true,
-        'endpoints.update': true,
-        'permissions.manage': true,
-        'profile.read': true,
-        'profile.update': true,
-        'system.admin': true,
-      },
-    },
-  });
-
-  console.log('Roles created:', {
-    customerRole: customerRole.name,
-    employeeRole: employeeRole.name,
-    managerRole: managerRole.name,
-    adminRole: adminRole.name,
-    superadminRole: superadminRole.name,
-  });
-
-  console.log('Creating permissions...');
+  // 1. Crear permisos primero
+  console.log('📋 Creating permissions...');
 
   const permissions = [
+    // Dashboard
     {
       name: 'dashboard.access',
       description: 'Acceso al dashboard administrativo',
@@ -143,6 +36,8 @@ async function main() {
       description: 'Eliminar usuarios',
       category: 'users',
     },
+
+    // Roles
     {
       name: 'roles.read',
       description: 'Leer roles',
@@ -163,21 +58,30 @@ async function main() {
       description: 'Eliminar roles',
       category: 'roles',
     },
+
+    // Permissions
     {
-      name: 'endpoints.read',
-      description: 'Leer endpoints',
-      category: 'endpoints',
-    },
-    {
-      name: 'endpoints.update',
-      description: 'Actualizar endpoints',
-      category: 'endpoints',
-    },
-    {
-      name: 'permissions.manage',
-      description: 'Gestionar permisos',
+      name: 'permissions.read',
+      description: 'Leer permisos',
       category: 'permissions',
     },
+    {
+      name: 'permissions.create',
+      description: 'Crear permisos',
+      category: 'permissions',
+    },
+    {
+      name: 'permissions.update',
+      description: 'Actualizar permisos',
+      category: 'permissions',
+    },
+    {
+      name: 'permissions.delete',
+      description: 'Eliminar permisos',
+      category: 'permissions',
+    },
+
+    // Profile
     {
       name: 'profile.read',
       description: 'Leer perfil propio',
@@ -187,11 +91,6 @@ async function main() {
       name: 'profile.update',
       description: 'Actualizar perfil propio',
       category: 'profile',
-    },
-    {
-      name: 'system.admin',
-      description: 'Administración del sistema',
-      category: 'system',
     },
   ];
 
@@ -203,140 +102,179 @@ async function main() {
     });
   }
 
-  console.log(`Created ${permissions.length} permissions`);
+  console.log(`✅ Created ${permissions.length} permissions`);
 
-  console.log('Creating role permissions...');
+  // 2. Crear roles
+  console.log('👥 Creating roles...');
+
+  const customerRole = await prisma.role.upsert({
+    where: { slug: 'customer' },
+    update: {},
+    create: {
+      name: 'Customer',
+      slug: 'customer',
+      description: 'Usuario cliente básico',
+      permissions: {
+        'profile.read': true,
+        'profile.update': true,
+      },
+    },
+  });
+
+  const employeeRole = await prisma.role.upsert({
+    where: { slug: 'employee' },
+    update: {},
+    create: {
+      name: 'Employee',
+      slug: 'employee',
+      description: 'Empleado con acceso básico al dashboard',
+      permissions: {
+        'dashboard.access': true,
+        'users.read': true,
+        'profile.read': true,
+        'profile.update': true,
+      },
+    },
+  });
+
+  const managerRole = await prisma.role.upsert({
+    where: { slug: 'manager' },
+    update: {},
+    create: {
+      name: 'Manager',
+      slug: 'manager',
+      description: 'Gerente con permisos de gestión',
+      permissions: {
+        'dashboard.access': true,
+        'users.read': true,
+        'users.create': true,
+        'users.update': true,
+        'roles.read': true,
+        'permissions.read': true,
+        'profile.read': true,
+        'profile.update': true,
+      },
+    },
+  });
+
+  const adminRole = await prisma.role.upsert({
+    where: { slug: 'admin' },
+    update: {},
+    create: {
+      name: 'Admin',
+      slug: 'admin',
+      description: 'Administrador con permisos completos',
+      permissions: {
+        'dashboard.access': true,
+        'users.read': true,
+        'users.create': true,
+        'users.update': true,
+        'users.delete': true,
+        'roles.read': true,
+        'roles.create': true,
+        'roles.update': true,
+        'roles.delete': true,
+        'permissions.read': true,
+        'permissions.create': true,
+        'permissions.update': true,
+        'permissions.delete': true,
+        'profile.read': true,
+        'profile.update': true,
+      },
+    },
+  });
+
+  const superadminRole = await prisma.role.upsert({
+    where: { slug: 'superadmin' },
+    update: {},
+    create: {
+      name: 'Super Admin',
+      slug: 'superadmin',
+      description: 'Super administrador con acceso total',
+      permissions: {},
+    },
+  });
+
+  console.log('✅ Roles created:', {
+    customer: customerRole.name,
+    employee: employeeRole.name,
+    manager: managerRole.name,
+    admin: adminRole.name,
+    superadmin: superadminRole.name,
+  });
+
+  // 3. Asignar permisos a roles usando RolePermission
+  console.log('🔗 Creating role permissions...');
 
   const allPermissions = await prisma.permission.findMany();
 
-  const adminPermissionNames = [
-    'dashboard.access',
-    'users.read',
-    'users.create',
-    'users.update',
-    'users.delete',
-    'roles.read',
-    'roles.create',
-    'roles.update',
-    'roles.delete',
-    'endpoints.read',
-    'endpoints.update',
-    'permissions.manage',
-  ];
+  // Definir permisos por rol
+  const rolePermissionsMap = {
+    [customerRole.id]: ['profile.read', 'profile.update'],
+    [employeeRole.id]: [
+      'dashboard.access',
+      'users.read',
+      'profile.read',
+      'profile.update',
+    ],
+    [managerRole.id]: [
+      'dashboard.access',
+      'users.read',
+      'users.create',
+      'users.update',
+      'roles.read',
+      'permissions.read',
+      'profile.read',
+      'profile.update',
+    ],
+    [adminRole.id]: [
+      'dashboard.access',
+      'users.read',
+      'users.create',
+      'users.update',
+      'users.delete',
+      'roles.read',
+      'roles.create',
+      'roles.update',
+      'roles.delete',
+      'permissions.read',
+      'permissions.create',
+      'permissions.update',
+      'permissions.delete',
+      'profile.read',
+      'profile.update',
+    ],
+    [superadminRole.id]: [],
+  };
 
-  const superadminPermissionNames = [...adminPermissionNames, 'system.admin'];
-
-  const managerPermissionNames = [
-    'dashboard.access',
-    'users.read',
-    'users.create',
-    'users.update',
-    'roles.read',
-    'endpoints.read',
-  ];
-
-  const employeePermissionNames = ['dashboard.access', 'users.read'];
-
-  const customerPermissionNames = ['profile.read', 'profile.update'];
-
-  for (const permissionName of superadminPermissionNames) {
-    const permission = allPermissions.find((p) => p.name === permissionName);
-    if (permission) {
-      await prisma.rolePermission.upsert({
-        where: {
-          roleId_permissionId: {
-            roleId: superadminRole.id,
+  for (const [roleIdStr, permissionNames] of Object.entries(
+    rolePermissionsMap,
+  )) {
+    const roleId = parseInt(roleIdStr);
+    for (const permissionName of permissionNames) {
+      const permission = allPermissions.find((p) => p.name === permissionName);
+      if (permission) {
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: {
+              roleId,
+              permissionId: permission.id,
+            },
+          },
+          update: {},
+          create: {
+            roleId,
             permissionId: permission.id,
           },
-        },
-        update: {},
-        create: {
-          roleId: superadminRole.id,
-          permissionId: permission.id,
-        },
-      });
+        });
+      }
     }
   }
 
-  for (const permissionName of adminPermissionNames) {
-    const permission = allPermissions.find((p) => p.name === permissionName);
-    if (permission) {
-      await prisma.rolePermission.upsert({
-        where: {
-          roleId_permissionId: {
-            roleId: adminRole.id,
-            permissionId: permission.id,
-          },
-        },
-        update: {},
-        create: {
-          roleId: adminRole.id,
-          permissionId: permission.id,
-        },
-      });
-    }
-  }
+  console.log('✅ Role permissions created');
 
-  for (const permissionName of managerPermissionNames) {
-    const permission = allPermissions.find((p) => p.name === permissionName);
-    if (permission) {
-      await prisma.rolePermission.upsert({
-        where: {
-          roleId_permissionId: {
-            roleId: managerRole.id,
-            permissionId: permission.id,
-          },
-        },
-        update: {},
-        create: {
-          roleId: managerRole.id,
-          permissionId: permission.id,
-        },
-      });
-    }
-  }
-
-  for (const permissionName of employeePermissionNames) {
-    const permission = allPermissions.find((p) => p.name === permissionName);
-    if (permission) {
-      await prisma.rolePermission.upsert({
-        where: {
-          roleId_permissionId: {
-            roleId: employeeRole.id,
-            permissionId: permission.id,
-          },
-        },
-        update: {},
-        create: {
-          roleId: employeeRole.id,
-          permissionId: permission.id,
-        },
-      });
-    }
-  }
-
-  for (const permissionName of customerPermissionNames) {
-    const permission = allPermissions.find((p) => p.name === permissionName);
-    if (permission) {
-      await prisma.rolePermission.upsert({
-        where: {
-          roleId_permissionId: {
-            roleId: customerRole.id,
-            permissionId: permission.id,
-          },
-        },
-        update: {},
-        create: {
-          roleId: customerRole.id,
-          permissionId: permission.id,
-        },
-      });
-    }
-  }
-
-  console.log('Role permissions created');
-
-  console.log('Creating users...');
+  // 4. Crear usuarios
+  console.log('👤 Creating users...');
 
   const customerUser = await prisma.user.upsert({
     where: { email: 'customer@test.com' },
@@ -347,6 +285,7 @@ async function main() {
       firstName: 'Customer',
       lastName: 'User',
       isActive: true,
+      isVerified: true,
       roleId: customerRole.id,
     },
   });
@@ -360,6 +299,7 @@ async function main() {
       firstName: 'Employee',
       lastName: 'User',
       isActive: true,
+      isVerified: true,
       roleId: employeeRole.id,
     },
   });
@@ -373,6 +313,7 @@ async function main() {
       firstName: 'Manager',
       lastName: 'User',
       isActive: true,
+      isVerified: true,
       roleId: managerRole.id,
     },
   });
@@ -386,6 +327,7 @@ async function main() {
       firstName: 'Admin',
       lastName: 'User',
       isActive: true,
+      isVerified: true,
       roleId: adminRole.id,
     },
   });
@@ -399,11 +341,12 @@ async function main() {
       firstName: 'Super Admin',
       lastName: 'User',
       isActive: true,
+      isVerified: true,
       roleId: superadminRole.id,
     },
   });
 
-  console.log('Users created:', {
+  console.log('✅ Users created:', {
     customer: customerUser.email,
     employee: employeeUser.email,
     manager: managerUser.email,
@@ -411,7 +354,13 @@ async function main() {
     superadmin: superadminUser.email,
   });
 
-  console.log('Seed completed successfully!');
+  console.log('\n🎉 Seed completed successfully!');
+  console.log('\n📝 Test accounts:');
+  console.log('- Customer: customer@test.com / customer123');
+  console.log('- Employee: employee@test.com / employee123');
+  console.log('- Manager: manager@test.com / manager123');
+  console.log('- Admin: admin@test.com / admin123');
+  console.log('- Super Admin: superadmin@test.com / superadmin123');
 }
 
 main()
@@ -419,6 +368,6 @@ main()
     console.error('Error during seed:', e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    void prisma.$disconnect();
   });

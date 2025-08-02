@@ -1,61 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
+import { isSuperAdmin } from '../auth/utils/permissions.utils';
+
+const userInclude = {
+  role: {
+    include: {
+      rolePermissions: {
+        include: {
+          permission: true,
+        },
+        where: {
+          isActive: true,
+        },
+      },
+    },
+  },
+};
 
 export type UserResponse = Prisma.UserGetPayload<{
-  include: {
-    role: {
-      include: {
-        rolePermissions: {
-          include: {
-            permission: true;
-          };
-          where: {
-            isActive: true;
-          };
-        };
-      };
-    };
-    userPermissions: {
-      include: {
-        permission: true;
-      };
-      where: {
-        isActive: true;
-      };
-    };
-  };
-  omit: {
-    password: true;
-  };
+  include: typeof userInclude;
+  omit: { password: true };
 }>;
 
 export type UserResponseWithPassword = Prisma.UserGetPayload<{
-  include: {
-    role: {
-      include: {
-        rolePermissions: {
-          include: {
-            permission: true;
-          };
-          where: {
-            isActive: true;
-          };
-        };
-      };
-    };
-    userPermissions: {
-      include: {
-        permission: true;
-      };
-      where: {
-        isActive: true;
-      };
-    };
-  };
+  include: typeof userInclude;
 }>;
 
 @Injectable()
@@ -69,28 +41,7 @@ export class UsersService {
         ...createUserDto,
         password: hashedPassword,
       },
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-              where: {
-                isActive: true,
-              },
-            },
-          },
-        },
-        userPermissions: {
-          include: {
-            permission: true,
-          },
-          where: {
-            isActive: true,
-          },
-        },
-      },
+      include: userInclude,
       omit: {
         password: true,
       },
@@ -100,28 +51,8 @@ export class UsersService {
 
   async findAll(): Promise<UserResponse[]> {
     return this.prisma.user.findMany({
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-              where: {
-                isActive: true,
-              },
-            },
-          },
-        },
-        userPermissions: {
-          include: {
-            permission: true,
-          },
-          where: {
-            isActive: true,
-          },
-        },
-      },
+      include: userInclude,
+      omit: { password: true },
       where: {
         isActive: true,
       },
@@ -134,28 +65,8 @@ export class UsersService {
   async findOne(id: number): Promise<UserResponse | null> {
     const user = this.prisma.user.findUnique({
       where: { id },
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-              where: {
-                isActive: true,
-              },
-            },
-          },
-        },
-        userPermissions: {
-          include: {
-            permission: true,
-          },
-          where: {
-            isActive: true,
-          },
-        },
-      },
+      include: userInclude,
+      omit: { password: true },
     });
     return user;
   }
@@ -165,58 +76,9 @@ export class UsersService {
   ): Promise<UserResponseWithPassword | null> {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-              where: {
-                isActive: true,
-              },
-            },
-          },
-        },
-        userPermissions: {
-          include: {
-            permission: true,
-          },
-          where: {
-            isActive: true,
-          },
-        },
-      },
+      include: userInclude,
     });
     return user;
-  }
-
-  async findOneWithRole(id: number): Promise<UserResponse | null> {
-    return this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-              where: {
-                isActive: true,
-              },
-            },
-          },
-        },
-        userPermissions: {
-          include: {
-            permission: true,
-          },
-          where: {
-            isActive: true,
-          },
-        },
-      },
-    });
   }
 
   async update(
@@ -225,51 +87,37 @@ export class UsersService {
   ): Promise<UserResponse> {
     return await this.prisma.user.update({
       where: { id },
-      data: updateUserDto,
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-              where: {
-                isActive: true,
-              },
-            },
-          },
-        },
-        userPermissions: {
-          include: {
-            permission: true,
-          },
-          where: {
-            isActive: true,
-          },
-        },
+      data: {
+        firstName: updateUserDto?.firstName,
+        lastName: updateUserDto?.lastName,
+        phone: updateUserDto?.phone,
       },
-      omit: {
-        password: true,
-      },
+      include: userInclude,
+      omit: { password: true },
     });
   }
 
   async remove(id: number): Promise<boolean> {
-    await this.prisma.user.delete({
+    const userToDelete = await this.prisma.user.findUnique({
       where: { id },
       include: {
-        role: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            permissions: true,
-          },
-        },
+        role: true,
       },
-      omit: {
-        password: true,
-      },
+    });
+
+    if (!userToDelete) {
+      throw new ForbiddenException('User not found');
+    }
+
+    // Verificar si es superadmin y no permitir eliminación
+    if (isSuperAdmin(userToDelete)) {
+      throw new ForbiddenException(
+        'Cannot delete superadmin user for security reasons',
+      );
+    }
+
+    await this.prisma.user.delete({
+      where: { id },
     });
     return true;
   }
