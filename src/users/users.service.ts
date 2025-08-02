@@ -5,7 +5,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
 
-// Un solo tipo para todas las respuestas
 export type UserResponse = Prisma.UserGetPayload<{
   include: {
     role: {

@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting seed process...');
 
-  // 1. Crear roles básicos
   console.log('Creating roles...');
 
   const customerRole = await prisma.role.upsert({
@@ -116,7 +115,6 @@ async function main() {
     superadminRole: superadminRole.name,
   });
 
-  // 2. Crear permisos en la tabla Permission
   console.log('Creating permissions...');
 
   const permissions = [
@@ -207,12 +205,10 @@ async function main() {
 
   console.log(`Created ${permissions.length} permissions`);
 
-  // 3. Crear relaciones RolePermission para todos los roles
   console.log('Creating role permissions...');
 
   const allPermissions = await prisma.permission.findMany();
 
-  // Admin permissions: dashboard, users, roles, endpoints, permissions
   const adminPermissionNames = [
     'dashboard.access',
     'users.read',
@@ -228,10 +224,8 @@ async function main() {
     'permissions.manage',
   ];
 
-  // SuperAdmin permissions: todo lo del admin + system.admin
   const superadminPermissionNames = [...adminPermissionNames, 'system.admin'];
 
-  // Manager permissions: dashboard, users (read/create/update), roles (read), endpoints (read)
   const managerPermissionNames = [
     'dashboard.access',
     'users.read',
@@ -241,13 +235,10 @@ async function main() {
     'endpoints.read',
   ];
 
-  // Employee permissions: dashboard, users (read)
   const employeePermissionNames = ['dashboard.access', 'users.read'];
 
-  // Customer permissions: profile only
   const customerPermissionNames = ['profile.read', 'profile.update'];
 
-  // Asignar permisos a SuperAdmin
   for (const permissionName of superadminPermissionNames) {
     const permission = allPermissions.find((p) => p.name === permissionName);
     if (permission) {
@@ -267,7 +258,6 @@ async function main() {
     }
   }
 
-  // Asignar permisos a Admin
   for (const permissionName of adminPermissionNames) {
     const permission = allPermissions.find((p) => p.name === permissionName);
     if (permission) {
@@ -287,7 +277,6 @@ async function main() {
     }
   }
 
-  // Asignar permisos a Manager
   for (const permissionName of managerPermissionNames) {
     const permission = allPermissions.find((p) => p.name === permissionName);
     if (permission) {
@@ -307,7 +296,6 @@ async function main() {
     }
   }
 
-  // Asignar permisos a Employee
   for (const permissionName of employeePermissionNames) {
     const permission = allPermissions.find((p) => p.name === permissionName);
     if (permission) {
@@ -327,7 +315,6 @@ async function main() {
     }
   }
 
-  // Asignar permisos a Customer
   for (const permissionName of customerPermissionNames) {
     const permission = allPermissions.find((p) => p.name === permissionName);
     if (permission) {
@@ -349,7 +336,6 @@ async function main() {
 
   console.log('Role permissions created');
 
-  // 4. Crear usuarios de prueba
   console.log('Creating users...');
 
   const customerUser = await prisma.user.upsert({

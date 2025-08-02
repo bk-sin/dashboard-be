@@ -8,22 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Category {
-  id          Int       @id @default(autoincrement())
-  name        String
-  slug        String    @unique
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  Product     Product[]
-}
-
 model Role {
   id              Int              @id @default(autoincrement())
   name            String           @unique
   slug            String           @unique
   description     String?
-  permissions     Json?            // Campo de compatibilidad
+  permissions     Json?
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -70,9 +60,6 @@ model User {
   isBlocked       Boolean          @default(false)
   lastLogin       DateTime?
   roleId          Int              @default(1)
-  addresses       Address[]
-  Order           Order[]
-  Review          Review[]
   role            Role             @relation(fields: [roleId], references: [id])
   userPermissions UserPermission[]
 }
@@ -88,126 +75,4 @@ model UserPermission {
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, permissionId])
-}
-
-model Address {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  type      String
-  street    String
-  city      String
-  state     String
-  country   String
-  zipCode   String
-  isDefault Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
-  Order     Order[]
-}
-
-model Product {
-  id          Int          @id @default(autoincrement())
-  name        String
-  description String
-  slug        String       @unique
-  price       Float
-  stock       Int          @default(0)
-  sku         String       @unique
-  categoryId  Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  isActive    Boolean      @default(true)
-  isFeatured  Boolean      @default(false)
-  isOnSale    Boolean      @default(false)
-  discount    Float        @default(0)
-  rating      Float        @default(0)
-  images      Image[]
-  OrderItem   OrderItem[]
-  category    Category     @relation(fields: [categoryId], references: [id])
-  ProductTag  ProductTag[]
-  reviews     Review[]
-}
-
-model Review {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  userId    Int
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Image {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  url       String
-  altText   String?
-  isPrimary Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id])
-}
-
-model Tag {
-  id         Int          @id @default(autoincrement())
-  name       String       @unique
-  slug       String       @unique
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  ProductTag ProductTag[]
-}
-
-model ProductTag {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  tagId     Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id])
-  tag       Tag      @relation(fields: [tagId], references: [id])
-}
-
-model Order {
-  id                Int         @id @default(autoincrement())
-  userId            Int
-  total             Float
-  status            String      @default("pending")
-  paymentMethod     String
-  shippingAddressId Int
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  shippingAddress   Address     @relation(fields: [shippingAddressId], references: [id])
-  user              User        @relation(fields: [userId], references: [id])
-  items             OrderItem[]
-}
-
-model OrderItem {
-  id        Int      @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  quantity  Int
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  order     Order    @relation(fields: [orderId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
-}
-
-model Endpoint {
-  id          Int       @id @default(autoincrement())
-  path        String    // e.g., "/users/:id"
-  method      String    // GET, POST, PUT, DELETE
-  controller  String    // UsersController
-  action      String    // findOne, create, update, delete
-  description String?
-  isActive    Boolean   @default(true)
-  permissions Json      // Array of required permissions
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@unique([path, method])
 }

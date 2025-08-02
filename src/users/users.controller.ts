@@ -2,7 +2,7 @@ import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { RequirePermissions } from '../auth/decorators/permissions.decorator';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 
 @ApiBearerAuth('jwt')
 @Controller('users')

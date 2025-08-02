@@ -17,7 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { RequirePermissions } from '../auth/decorators/permissions.decorator';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 
 @ApiTags('Roles')
 @ApiBearerAuth('jwt')

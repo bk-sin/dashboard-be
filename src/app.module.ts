@@ -4,12 +4,10 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
-import { EndpointManagementModule } from './endpoint-management/endpoint-management.module';
-import { PermissionManagementModule } from './permission-management/permission-management.module';
+import { PermissionsModule } from './permissions/permissions.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { PermissionsGuard } from './auth/permissions.guard';
-import { DynamicEndpointGuard } from './auth/dynamic-endpoint.guard';
 
 @Module({
   imports: [
@@ -20,8 +18,7 @@ import { DynamicEndpointGuard } from './auth/dynamic-endpoint.guard';
     UsersModule,
     AuthModule,
     RolesModule,
-    EndpointManagementModule,
-    PermissionManagementModule,
+    PermissionsModule,
   ],
   providers: [
     {
@@ -31,10 +28,6 @@ import { DynamicEndpointGuard } from './auth/dynamic-endpoint.guard';
     {
       provide: APP_GUARD,
       useClass: PermissionsGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: DynamicEndpointGuard,
     },
   ],
 })

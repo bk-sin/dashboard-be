@@ -1,23 +1,17 @@
-export type UserLike = {
-  id: number;
-  email: string;
-  roleId: number;
-  firstName?: string;
-  lastName?: string;
-};
+import { UserResponseWithPassword } from 'src/users/users.service';
 
 export class LoginResponseDto {
   id: number;
   email: string;
-  roleId: number;
+  role: string;
   access_token: string;
   firstName?: string;
   lastName?: string;
 
-  constructor(user: UserLike, access_token: string) {
+  constructor(user: UserResponseWithPassword, access_token: string) {
     this.id = user.id;
     this.email = user.email;
-    this.roleId = user.roleId;
+    this.role = user.role.slug;
     this.access_token = access_token;
     if (user.firstName) this.firstName = user.firstName;
     if (user.lastName) this.lastName = user.lastName;

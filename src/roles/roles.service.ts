@@ -74,7 +74,6 @@ export class RolesService {
   }
 
   async remove(id: number) {
-    // Check if role has users assigned
     const roleWithUsers = await this.prisma.role.findUnique({
       where: { id },
       include: {
