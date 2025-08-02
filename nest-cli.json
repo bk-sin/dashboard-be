@@ -6,9 +6,11 @@
     "deleteOutDir": true,
     "assets": [
       {
-        "include": "**/*.prisma",
+        "include": "../generated",
+        "outDir": "dist/generated",
         "watchAssets": true
       }
-    ]
+    ],
+    "watchAssets": true
   }
 }

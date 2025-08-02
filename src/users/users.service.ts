@@ -24,6 +24,15 @@ export class UsersService {
 
   findAll() {
     return this.prisma.user.findMany({
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
       omit: {
         password: true,
       },
@@ -33,6 +42,16 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id },
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            permissions: true,
+          },
+        },
+      },
       omit: {
         password: true,
       },
@@ -43,6 +62,16 @@ export class UsersService {
   async findOneByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            permissions: true,
+          },
+        },
+      },
     });
   }
 

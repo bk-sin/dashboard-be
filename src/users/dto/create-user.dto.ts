@@ -4,6 +4,8 @@ import {
   IsOptional,
   IsString,
   MinLength,
+  IsInt,
+  Min,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -33,4 +35,13 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @ApiProperty({
+    example: 5,
+    description: 'Role ID - defaults to Customer role (5)',
+  })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  roleId?: number;
 }
