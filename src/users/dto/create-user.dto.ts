@@ -37,8 +37,8 @@ export class CreateUserDto {
   phone?: string;
 
   @ApiProperty({
-    example: 5,
-    description: 'Role ID - defaults to Customer role (5)',
+    example: 1,
+    description: 'Role ID - defaults to Customer role (1)',
   })
   @IsInt()
   @Min(1)
