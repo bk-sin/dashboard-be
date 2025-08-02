@@ -15,15 +15,23 @@ export class RolesService {
 
   async findAll() {
     return this.prisma.role.findMany({
-      orderBy: {
-        name: 'asc',
-      },
       include: {
+        rolePermissions: {
+          include: {
+            permission: true,
+          },
+          where: {
+            isActive: true,
+          },
+        },
         _count: {
           select: {
             users: true,
           },
         },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }
@@ -32,6 +40,14 @@ export class RolesService {
     return this.prisma.role.findUnique({
       where: { id },
       include: {
+        rolePermissions: {
+          include: {
+            permission: true,
+          },
+          where: {
+            isActive: true,
+          },
+        },
         users: {
           select: {
             id: true,

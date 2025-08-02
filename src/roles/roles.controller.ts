@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('Roles')
 @ApiBearerAuth('jwt')
@@ -25,6 +26,7 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @RequirePermissions('roles.create')
   @ApiOperation({ summary: 'Create a new role' })
   @ApiResponse({ status: 201, description: 'Role created successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
@@ -34,6 +36,7 @@ export class RolesController {
   }
 
   @Get()
+  @RequirePermissions('roles.read')
   @ApiOperation({ summary: 'Get all roles' })
   @ApiResponse({ status: 200, description: 'Return all roles' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -42,6 +45,7 @@ export class RolesController {
   }
 
   @Get(':id')
+  @RequirePermissions('roles.read')
   @ApiOperation({ summary: 'Get a role by id' })
   @ApiResponse({ status: 200, description: 'Return a role' })
   @ApiResponse({ status: 404, description: 'Role not found' })
@@ -51,6 +55,7 @@ export class RolesController {
   }
 
   @Get('slug/:slug')
+  @RequirePermissions('roles.read')
   @ApiOperation({ summary: 'Get a role by slug' })
   @ApiResponse({ status: 200, description: 'Return a role' })
   @ApiResponse({ status: 404, description: 'Role not found' })
@@ -60,6 +65,7 @@ export class RolesController {
   }
 
   @Patch(':id')
+  @RequirePermissions('roles.update')
   @ApiOperation({ summary: 'Update a role' })
   @ApiResponse({ status: 200, description: 'Role updated successfully' })
   @ApiResponse({ status: 404, description: 'Role not found' })
@@ -72,6 +78,7 @@ export class RolesController {
   }
 
   @Patch(':id/toggle-status')
+  @RequirePermissions('roles.update')
   @ApiOperation({ summary: 'Toggle role active status' })
   @ApiResponse({ status: 200, description: 'Role status toggled successfully' })
   @ApiResponse({ status: 404, description: 'Role not found' })
@@ -81,6 +88,7 @@ export class RolesController {
   }
 
   @Delete(':id')
+  @RequirePermissions('roles.delete')
   @ApiOperation({ summary: 'Delete a role' })
   @ApiResponse({ status: 200, description: 'Role deleted successfully' })
   @ApiResponse({ status: 404, description: 'Role not found' })

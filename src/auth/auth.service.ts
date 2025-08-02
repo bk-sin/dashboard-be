@@ -1,10 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { UsersService } from 'src/users/users.service';
+import { UserResponse, UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User } from 'generated/prisma';
 
 @Injectable()
 export class AuthService {
@@ -13,8 +12,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  private async _createToken(user: Omit<User, 'password'> | User) {
-    const payload = { sub: user.id, email: user.email, roleId: user.roleId };
+  private async _createToken(user: UserResponse) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      roleId: user.roleId,
+      role: user.role.slug,
+    };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };
@@ -24,6 +28,19 @@ export class AuthService {
     const user = await this.usersService.findOneByEmail(loginDto.email);
     if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.role?.permissions) {
+      throw new UnauthorizedException(
+        'Access denied: No role permissions found',
+      );
+    }
+
+    const permissions = user.role.permissions as Record<string, boolean>;
+    if (!permissions['dashboard.access']) {
+      throw new UnauthorizedException(
+        'Access denied: Dashboard permissions required',
+      );
     }
 
     const token = await this._createToken(user);

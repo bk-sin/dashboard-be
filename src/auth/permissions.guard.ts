@@ -1,6 +1,16 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
 import { PERMISSIONS_KEY } from './decorators/permissions.decorator';
+import { User, Role } from 'generated/prisma';
+
+type UserWithRole = User & {
+  role: Role;
+};
+
+interface AuthenticatedRequest extends Request {
+  user: UserWithRole;
+}
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -16,23 +26,17 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    interface RequestWithUser extends Request {
-      user?: {
-        role?: {
-          permissions?: string[];
-        };
-      };
-    }
-
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const { user } = request;
 
     if (!user?.role?.permissions) {
       return false;
     }
 
-    return requiredPermissions.some((permission) =>
-      user.role?.permissions?.includes(permission),
+    const permissions = user.role.permissions as Record<string, boolean>;
+
+    return requiredPermissions.some(
+      (permission) => permissions[permission] === true,
     );
   }
 }
