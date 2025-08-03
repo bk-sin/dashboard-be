@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -106,10 +110,9 @@ export class UsersService {
     });
 
     if (!userToDelete) {
-      throw new ForbiddenException('User not found');
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    // Verificar si es superadmin y no permitir eliminación
     if (isSuperAdmin(userToDelete)) {
       throw new ForbiddenException(
         'Cannot delete superadmin user for security reasons',

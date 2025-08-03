@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { UserResponse, UsersService } from 'src/users/users.service';
@@ -43,7 +47,7 @@ export class AuthService {
 
     const permissions = user.role.permissions as Record<string, boolean>;
     if (!permissions['dashboard.access'] && user.role.slug !== 'superadmin') {
-      throw new UnauthorizedException(
+      throw new ForbiddenException(
         'Access denied: Dashboard permissions required',
       );
     }
