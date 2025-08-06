@@ -15,10 +15,7 @@ export class PermissionsService {
 
   async findAll() {
     return this.prisma.permission.findMany({
-      orderBy: [
-        { category: 'asc' },
-        { name: 'asc' },
-      ],
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
     });
   }
 
@@ -70,6 +67,6 @@ export class PermissionsService {
       orderBy: { category: 'asc' },
     });
 
-    return permissions.map(p => p.category);
+    return permissions.map((p) => p.category);
   }
 }
