@@ -4,13 +4,7 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting seed process...');
-
-  // 1. Crear permisos primero
-  console.log('📋 Creating permissions...');
-
   const permissions = [
-    // Dashboard
     {
       name: 'dashboard.access',
       description: 'Acceso al dashboard administrativo',
@@ -36,8 +30,6 @@ async function main() {
       description: 'Eliminar usuarios',
       category: 'users',
     },
-
-    // Roles
     {
       name: 'roles.read',
       description: 'Leer roles',
@@ -58,8 +50,6 @@ async function main() {
       description: 'Eliminar roles',
       category: 'roles',
     },
-
-    // Permissions
     {
       name: 'permissions.read',
       description: 'Leer permisos',
@@ -80,8 +70,6 @@ async function main() {
       description: 'Eliminar permisos',
       category: 'permissions',
     },
-
-    // Profile
     {
       name: 'profile.read',
       description: 'Leer perfil propio',
@@ -101,11 +89,6 @@ async function main() {
       create: permission,
     });
   }
-
-  console.log(`✅ Created ${permissions.length} permissions`);
-
-  // 2. Crear roles
-  console.log('👥 Creating roles...');
 
   const customerRole = await prisma.role.upsert({
     where: { slug: 'customer' },
@@ -203,12 +186,8 @@ async function main() {
     superadmin: superadminRole.name,
   });
 
-  // 3. Asignar permisos a roles usando RolePermission
-  console.log('🔗 Creating role permissions...');
-
   const allPermissions = await prisma.permission.findMany();
 
-  // Definir permisos por rol
   const rolePermissionsMap = {
     [customerRole.id]: ['profile.read', 'profile.update'],
     [employeeRole.id]: [
@@ -270,11 +249,6 @@ async function main() {
       }
     }
   }
-
-  console.log('✅ Role permissions created');
-
-  // 4. Crear usuarios
-  console.log('👤 Creating users...');
 
   const customerUser = await prisma.user.upsert({
     where: { email: 'customer@test.com' },

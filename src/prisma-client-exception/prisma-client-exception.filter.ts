@@ -3,12 +3,6 @@ import { BaseExceptionFilter } from '@nestjs/core';
 import { Response } from 'express';
 import { Prisma } from 'generated/prisma';
 
-/**
- * Catches Prisma's `PrismaClientKnownRequestError` and formats them into
- * a user-friendly HTTP response.
- *
- * @see https://www.prisma.io/docs/reference/api-reference/error-reference#prismaclientknownrequesterror
- */
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaClientExceptionFilter extends BaseExceptionFilter {
   public catch(
@@ -19,10 +13,6 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     switch (exception.code) {
-      // --------------------------------------------------------------------
-      // Handles unique constraint violations (e.g., creating a user with
-      // an email that already exists).
-      // --------------------------------------------------------------------
       case 'P2002': {
         const status = HttpStatus.CONFLICT;
         const field = (exception.meta?.target as string[])?.join(', ');
@@ -34,10 +24,6 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
         break;
       }
 
-      // --------------------------------------------------------------------
-      // Handles cases where a related record is required but not found.
-      // E.g., deleting a user that has posts.
-      // --------------------------------------------------------------------
       case 'P2003': {
         const status = HttpStatus.CONFLICT;
         const field = exception.meta?.field_name as string;
@@ -49,9 +35,6 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
         break;
       }
 
-      // --------------------------------------------------------------------
-      // Handles cases where a record to be updated or deleted was not found.
-      // --------------------------------------------------------------------
       case 'P2025': {
         const status = HttpStatus.NOT_FOUND;
         const message =
@@ -64,10 +47,6 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
         break;
       }
 
-      // --------------------------------------------------------------------
-      // If the error code is not handled above, fall back to the default
-      // NestJS exception filter.
-      // --------------------------------------------------------------------
       default:
         super.catch(exception, host);
         break;
